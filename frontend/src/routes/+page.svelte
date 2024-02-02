@@ -6,6 +6,7 @@
     import Navbar from '../lib/components/navbar.svelte'
 	import { createIntParam, createListParam } from "../lib/stores/param";
     import { goto } from '$app/navigation';
+    import { base } from '$app/paths';
 
     let { metadata, curr_selection, curr_heatmap } = createCore('https://d33ldq8s2ek4w8.cloudfront.net/crispri/metadata.json');//"./export/metadata.json.gz"
 
@@ -16,7 +17,7 @@
         if (e.origin !== window.location.origin) return
         if(typeof e.data !== 'object') return
         if(e.data.type !== 'heatmap_goto') return
-        goto(e.data.path)
+        goto(base + e.data.path)
     }
 
     const getters = derived(metadata, ($metadata, set) => {$metadata?.value && set([
