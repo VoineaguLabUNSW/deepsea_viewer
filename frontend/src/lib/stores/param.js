@@ -2,27 +2,30 @@ import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 import { derived, get } from 'svelte/store';
 
-function createParam(param, defaultVal='', fn=v => v, preventSideEffects=false, invalidates=[]) {
-    const store = derived(page, ($page)=> $page && fn($page.url.searchParams.get(param)) || defaultVal, defaultVal)
+function createParam(param, defaultVal='', fnStore=v => v, fnLoad=v => v, preventSideEffects=false, invalidates=[], invalidates_fn=undefined) {
+    const store = derived(page, ($page)=> $page && fnLoad($page.url.searchParams.get(param)) || defaultVal, defaultVal)
     return {
         set: v => {
+            let vStore = fnStore(v)
             let lastPage = get(page);
-            if(lastPage.url.searchParams.get(param) == v) return; //attempt to debounce, but won't work beyond primitive types
+            if(lastPage.url.searchParams.get(param) == vStore) return; //attempt to debounce, but won't work beyond primitive types
             let query = new URLSearchParams(lastPage.url.searchParams.toString());
-            query.set(param, v);
-            invalidates.forEach(iv => query.delete(iv))
+            query.set(param, vStore);
+            if(invalidates_fn(fnLoad(lastPage.url.searchParams.get(param)), v)) {
+                invalidates.forEach(iv => query.delete(iv));
+            }
             goto(`${lastPage.url.pathname}?${query.toString()}`,  preventSideEffects && { keepFocus: true, noScroll: true});
         },
         subscribe: store.subscribe
     }
 }
 
-function createIntParam(param, defaultVal=1, preventSideEffects=false, invalidates=[]) {
-    return createParam(param, defaultVal, parseInt, preventSideEffects, invalidates);
+function createIntParam(param, defaultVal=1, preventSideEffects=false, invalidates=[], invalidates_fn=undefined) {
+    return createParam(param, defaultVal, (v) => v, parseInt, preventSideEffects, invalidates, invalidates_fn);
 }
 
-function createListParam(param, preventSideEffects=false, invalidates=[]) {
-    return createParam(param, [], (v) => v && v.split(','), preventSideEffects, invalidates);
+function createListParam(param, preventSideEffects=false, invalidates=[], invalidates_fn=undefined) {
+    return createParam(param, [], (v) => v && v.join(','), (v) => v && v.split(','), preventSideEffects, invalidates, invalidates_fn);
 }
 
 export { createIntParam, createParam, createListParam};
