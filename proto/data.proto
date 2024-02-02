@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+message Heatmap {
+    repeated int32 types = 1;
+    repeated float values = 2;
+}
+
+message Enhancer {
+    repeated int32 headings = 1;
+    repeated int32 offsets = 2;
+}
+
+message Metadata {
+    string job_id = 1;
+    map<string,Enhancer> enhancers = 2;
+    repeated string factors = 3;
+}
