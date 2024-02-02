@@ -6,7 +6,7 @@
     import Navbar from '../lib/components/navbar.svelte'
 	import { createIntParam, createListParam } from "../lib/stores/param";
 
-    let { metadata, curr_selection, curr_heatmap } = createCore('https://d33ldq8s2ek4w8.cloudfront.net/crispri/metadata.json.gz');//"./export/metadata.json.gz"
+    let { metadata, curr_selection, curr_heatmap } = createCore('https://d33ldq8s2ek4w8.cloudfront.net/crispri/metadata.json');//"./export/metadata.json.gz"
 
     let subview_param = createIntParam('subview', 0, true);
     let selection_param = createListParam('selection', true, ['subview']);
