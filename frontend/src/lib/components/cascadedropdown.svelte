@@ -59,7 +59,7 @@
                 </div>
                 {#each s.options as option, j}
                     {#if option.toLowerCase().includes(search.toLowerCase())}
-                    <DropdownItem data-level={i} data-value={option} class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600" on:click={clickHandler}>
+                    <DropdownItem data-level={i} data-value={option} defaultClass="{s.index === j && 'bg-gray-200'} rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600" on:click={clickHandler}>
                         {option}
                     </DropdownItem>
                     {/if}

@@ -11,7 +11,7 @@
     let { metadata, curr_selection, curr_heatmap } = createCore('https://d33ldq8s2ek4w8.cloudfront.net/crispri/metadata.json');//"./export/metadata.json.gz"
 
     let subview_param = createIntParam('subview', 0, true);
-    let selection_param = createListParam('selection', true, ['subview'], (l1, l2) => l2[0] !== undefined && l1[0] !== l2[0]);
+    let selection_param = createListParam('selection', true, ['subview'], (l1, l2) => l1 == null || l1[0] !== l2[0]);
 
     function paramMessageReceiver(e) {
         if (e.origin !== window.location.origin) return

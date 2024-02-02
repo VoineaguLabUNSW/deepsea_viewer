@@ -84,11 +84,17 @@
         container.scroll({left: leftPxUser, behavior: smooth ? "smooth" : undefined})
     }
 
-    function smoothScroll(canvasEvent) {
-        const rect = canvas.getBoundingClientRect();
-        const scroll = (canvasEvent.clientX - rect.left) / (rect.right - rect.left);
+    function smoothScroll(e) {
+        const rect = e.target.getBoundingClientRect();
+        const scroll = (e.clientX - rect.left) / (rect.right - rect.left);
         const leftPxUser = scroll * width - clientWidth/2;
         container.scroll({left: leftPxUser, behavior: "smooth"})
+        e.preventDefault();
+    }
+
+    function horizontalScroll(e) {
+        container.scrollLeft += e.deltaY + e.deltaX;
+        e.preventDefault();
     }
 
     $: {
@@ -131,7 +137,7 @@
             <!-- y axis -->
             <g transform="translate({margin.left},0)" bind:this={gy}/>
         </svg>
-        <div bind:this={container} style="margin-right:{margin.right}px" class="overflow-x-scroll [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" on:scroll={(e) => (leftPx=e.target.scrollLeft)}>
+        <div bind:this={container} style="margin-right:{margin.right}px" class="overflow-x-scroll [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" on:scroll={(e) => (leftPx=e.target.scrollLeft)} on:wheel={horizontalScroll}>
                 <svg bind:this={svg} width={width} height={height}>
 
                     <!-- cells -->
@@ -161,5 +167,5 @@
 </div>
 <div class="relative border border-black border-1 opacity-75 hover:opacity-100 transition-opacity duration-50">
     <div style="left:{leftCan}%; right:{100-rightCan}%; height:{CANVAS_HEIGHT}px" class="absolute bg-white opacity-50 border border-black border-1 pointer-events-none"></div>
-    <canvas on:mousedown={smoothScroll} bind:this={canvas} width={CANVAS_RESOLUTION.x} height={CANVAS_RESOLUTION.y} style="height:{CANVAS_HEIGHT}px" class="w-full"></canvas>
+    <canvas on:wheel={horizontalScroll} on:mousedown={smoothScroll} bind:this={canvas} width={CANVAS_RESOLUTION.x} height={CANVAS_RESOLUTION.y} style="height:{CANVAS_HEIGHT}px" class="w-full"></canvas>
 </div>
