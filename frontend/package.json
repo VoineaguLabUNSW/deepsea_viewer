@@ -28,6 +28,7 @@
     "@bufbuild/protobuf": "^1.6.0",
     "@bufbuild/protoc-gen-es": "^1.6.0",
     "@square/svelte-store": "^1.0.17",
+    "@sveltejs/adapter-static": "^3.0.1",
     "autoprefixer": "^10.4.17",
     "d3": "^7.8.5",
     "d3-interpolate": "^3.0.1",
