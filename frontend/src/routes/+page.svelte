@@ -5,18 +5,27 @@
     import { createCore } from "../lib/stores/core"
     import Navbar from '../lib/components/navbar.svelte'
 	import { createIntParam, createListParam } from "../lib/stores/param";
+    import { goto } from '$app/navigation';
 
     let { metadata, curr_selection, curr_heatmap } = createCore('https://d33ldq8s2ek4w8.cloudfront.net/crispri/metadata.json');//"./export/metadata.json.gz"
 
     let subview_param = createIntParam('subview', 0, true);
     let selection_param = createListParam('selection', true, ['subview']);
 
+    function paramMessageReceiver(e) {
+        if (e.origin !== window.location.origin) return
+        if(typeof e.data !== 'object') return
+        if(e.data.type !== 'heatmap_goto') return
+        goto(e.data.path)
+    }
 
     const getters = derived(metadata, ($metadata, set) => {$metadata?.value && set([
         {name: 'Sequences', options: (job_id) => Object.keys($metadata.value.user_sequences).toSorted()},
         {name: 'Chromatin features', options: (job_id, enh_id) => $metadata.value.headings}
     ])});
 </script>
+
+<svelte:window on:message={paramMessageReceiver}/>
 
 <Navbar/>
 
