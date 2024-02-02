@@ -1,6 +1,7 @@
 <script>
 import { page } from '$app/stores';
 import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
+import { base } from '$app/paths';
 </script>
 
 <Navbar>
@@ -13,7 +14,7 @@ import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
   </NavBrand>
   <NavHamburger  />
   <NavUl activeUrl={$page.url.pathname}>
-    <NavLi href="/">Viewer</NavLi>
-    <NavLi href="/about">About</NavLi>
+    <NavLi href="{base}/">Viewer</NavLi>
+    <NavLi href="{base}/about">About</NavLi>
   </NavUl>
 </Navbar>
