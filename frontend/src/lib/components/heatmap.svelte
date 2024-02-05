@@ -25,8 +25,7 @@
     const type_to_order = MUTATION_TYPES.map(t => ({from: t[0], to: t[1], annot: `${t[0]}->${t[1]}`, y: MUTATION_DISPLAY_ORDER.indexOf(t[1])}));
 
     const plot_data = derived(data, ($data, set) => {
-        console.log($data)
-        if(!$data?.data) return;
+        if(!($data?.data)) return;
         const cells = $data.data.types.map(t => type_to_order[t]);
         const headings = cells.filter((_, i) => !(i%3)).map(p => p.from)
         set({cells, headings, values: $data.data.values, timestamp: Date.now()})
@@ -37,10 +36,8 @@
 	let width = 30000;
 	let height = 300;
 
-	let scrollMax = width;
-	$: scrollMax = width - clientWidth;
-
-    $: xScale = scaleLinear()
+	let xScale, yScale, legendScale;
+    $: if($plot_data) xScale = scaleLinear()
 		.domain([0, $plot_data.headings.length])
 		.range([margin.left, width-margin.right]);
 
@@ -54,13 +51,13 @@
 
     let gx1, gx2, gy, glegend;
     $: d3.select(gy).call(d3.axisLeft(yScale).tickValues([...Array(MUTATION_DISPLAY_ORDER.length).keys()].map(i => i+0.5)).tickFormat(i => MUTATION_DISPLAY_ORDER[Math.floor(i)]));
-    $: d3.select(gx2).call(d3.axisBottom(xScale).tickValues([...Array(2000/20).keys()].map(i => i*20)));
-    $: d3.select(gx1).call(d3.axisTop(xScale).tickValues([...Array(2000).keys()]).tickFormat(d => $plot_data.headings[d]));
+    $: if($plot_data) d3.select(gx2).call(d3.axisBottom(xScale).tickValues([...Array(2000/20).keys()].map(i => i*20)));
+    $: if($plot_data) d3.select(gx1).call(d3.axisTop(xScale).tickValues([...Array(2000).keys()]).tickFormat(d => $plot_data.headings[d]));
     $: d3.select(glegend).call(d3.axisBottom(legendScale).tickValues([-0.5, 0, 0.5]));
 
     let svg, canvas, container, canvas_timestamp;
     afterUpdate(() => {
-        if ($plot_data.timestamp === canvas_timestamp) return;
+        if (!$plot_data || $plot_data.timestamp === canvas_timestamp) return;
         canvas_timestamp = $plot_data.timestamp
 		const svg_url = new XMLSerializer().serializeToString(svg);
         const img = new Image();
@@ -114,58 +111,60 @@
     }
 </script>
 
- <div class="h-full w-full" bind:clientWidth bind:clientHeight bind:offsetWidth bind:offsetHeight role="none" on:dblclick={() => recenterScroll(true)}>
-    <div class='w-full h-16'>
-        <div class='float-right text-center'>
-            <svg width={LEGEND_SIZE.x} height=50>
-                <!-- legend -->
-                <defs>
-                    <linearGradient id="legend-gradient">
-                        {#each COLOR_STEPS as c, i}
-                            <stop offset="{i/(COLOR_STEPS.length-1)*100.0}%" stop-color={c} />
-                        {/each}
-                    </linearGradient>
-                </defs>
-                <g bind:this={glegend} transform="translate({0},{30})"/>
-                <rect width="{LEGEND_SIZE.x-margin.left-margin.right}" height=10 y=20 x={margin.left} fill="url(#legend-gradient)"/>
-                <text x="50%" y="10" dominant-baseline="middle" text-anchor="middle">Log-fold change</text>
-            </svg>
-        </div>
-    </div>
-    <div>
-      <svg height={height} width={margin.left} class="absolute pointer-events-none z-10 bg-white">
-            <!-- y axis -->
-            <g transform="translate({margin.left},0)" bind:this={gy}/>
-        </svg>
-        <div bind:this={container} style="margin-right:{margin.right}px" class="overflow-x-scroll [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" on:scroll={(e) => (leftPx=e.target.scrollLeft)} on:wheel={horizontalScroll}>
-                <svg bind:this={svg} width={width} height={height}>
-
-                    <!-- cells -->
-                    {#if $plot_data}
-                        {@const rect_w=(width-margin.left-margin.right)/$plot_data.headings.length}
-                        {@const rect_h=(height-margin.top-margin.bottom)/MUTATION_DISPLAY_ORDER.length}
-                        {#each $plot_data.cells as cell, i }
-                            {@const cellX=Math.floor(i/3)}
-                            <rect width={rect_w} height={rect_h} y={yScale(cell.y)} x={xScale(cellX)} opacity={(!$subview || Math.abs(cellX - 1000) <= $subview) ? 1 : 0.5} fill={color_scale($plot_data.values[i])}>
-                                <title>{cell.annot} ({$plot_data.values[i]})</title>
-                            </rect>
-                        {/each}
-
-                        <!-- x axis top -->
-                        <g transform="translate({rect_w/2},{margin.top})" bind:this={gx1}/>
-
-                        <!-- x axis bottom -->
-                        <g transform="translate({rect_w/2},{height-margin.bottom})" bind:this={gx2}/>
-
-                        <!-- center line -->
-                        <line stroke="black" stroke-dasharray="10,10" stroke-width="4" x1={xScale(1000.5)} y1={yScale(0)} x2={xScale(1000.5)} y2={yScale(4)}></line>
-                        <line stroke="white" stroke-dasharray="10,10" stroke-width="2" x1={xScale(1000.5)} y1={yScale(0)} x2={xScale(1000.5)} y2={yScale(4)}></line>
-                    {/if}
+<div class="{(!$data.data || !$plot_data) && 'animate-pulse opacity-20'}">
+    <div class="h-full w-full" bind:clientWidth bind:clientHeight bind:offsetWidth bind:offsetHeight role="none" on:dblclick={() => recenterScroll(true)}>
+        <div class='w-full h-16'>
+            <div class='float-right text-center'>
+                <svg width={LEGEND_SIZE.x} height=50>
+                    <!-- legend -->
+                    <defs>
+                        <linearGradient id="legend-gradient">
+                            {#each COLOR_STEPS as c, i}
+                                <stop offset="{i/(COLOR_STEPS.length-1)*100.0}%" stop-color={c} />
+                            {/each}
+                        </linearGradient>
+                    </defs>
+                    <g bind:this={glegend} transform="translate({0},{30})"/>
+                    <rect width="{LEGEND_SIZE.x-margin.left-margin.right}" height=10 y=20 x={margin.left} fill="url(#legend-gradient)"/>
+                    <text x="50%" y="10" dominant-baseline="middle" text-anchor="middle">Log-fold change</text>
                 </svg>
+            </div>
+        </div>
+        <div>
+        <svg height={height} width={margin.left} class="absolute pointer-events-none z-10 bg-white">
+                <!-- y axis -->
+                <g transform="translate({margin.left},0)" bind:this={gy}/>
+            </svg>
+            <div bind:this={container} style="margin-right:{margin.right}px" class="overflow-x-scroll [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" on:scroll={(e) => (leftPx=e.target.scrollLeft)} on:wheel={horizontalScroll}>
+                    <svg bind:this={svg} width={width} height={height}>
+
+                        <!-- cells -->
+                        {#if $plot_data}
+                            {@const rect_w=(width-margin.left-margin.right)/$plot_data.headings.length}
+                            {@const rect_h=(height-margin.top-margin.bottom)/MUTATION_DISPLAY_ORDER.length}
+                            {#each $plot_data.cells as cell, i }
+                                {@const cellX=Math.floor(i/3)}
+                                <rect width={rect_w} height={rect_h} y={yScale(cell.y)} x={xScale(cellX)} opacity={(!$subview || Math.abs(cellX - 1000) <= $subview) ? 1 : 0.5} fill={color_scale($plot_data.values[i])}>
+                                    <title>{cell.annot} ({$plot_data.values[i]})</title>
+                                </rect>
+                            {/each}
+
+                            <!-- x axis top -->
+                            <g transform="translate({rect_w/2},{margin.top})" bind:this={gx1}/>
+
+                            <!-- x axis bottom -->
+                            <g transform="translate({rect_w/2},{height-margin.bottom})" bind:this={gx2}/>
+
+                            <!-- center line -->
+                            <line stroke="black" stroke-dasharray="10,10" stroke-width="4" x1={xScale(1000.5)} y1={yScale(0)} x2={xScale(1000.5)} y2={yScale(4)}></line>
+                            <line stroke="white" stroke-dasharray="10,10" stroke-width="2" x1={xScale(1000.5)} y1={yScale(0)} x2={xScale(1000.5)} y2={yScale(4)}></line>
+                        {/if}
+                    </svg>
+            </div>
         </div>
     </div>
-</div>
-<div class="relative border border-black border-1 opacity-75 hover:opacity-100 transition-opacity duration-50">
-    <div style="left:{leftCan}%; right:{100-rightCan}%; height:{CANVAS_HEIGHT}px" class="absolute bg-white opacity-50 border border-black border-1 pointer-events-none"></div>
-    <canvas on:wheel={horizontalScroll} on:mousedown={smoothScroll} bind:this={canvas} width={CANVAS_RESOLUTION.x} height={CANVAS_RESOLUTION.y} style="height:{CANVAS_HEIGHT}px" class="w-full"></canvas>
+    <div class="relative border border-black border-1 opacity-75 hover:opacity-100 transition-opacity duration-50">
+        <div style="left:{leftCan}%; right:{100-rightCan}%; height:{CANVAS_HEIGHT}px" class="absolute bg-white opacity-50 border border-black border-1 pointer-events-none"></div>
+        <canvas on:wheel={horizontalScroll} on:mousedown={smoothScroll} bind:this={canvas} width={CANVAS_RESOLUTION.x} height={CANVAS_RESOLUTION.y} style="height:{CANVAS_HEIGHT}px" class="w-full"></canvas>
+    </div>
 </div>

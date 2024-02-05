@@ -1,4 +1,5 @@
 <script>
+    import { onDestroy } from 'svelte'
     import { writable, get, derived } from 'svelte/store'
     import { Button, Dropdown, DropdownItem, Search } from 'flowbite-svelte';
 
@@ -6,12 +7,12 @@
     export let getters = []; // function that takes all depending selected and returns options
     export let selected = writable([]);
 
-    let current = undefined; // current open dropdown level
+    let open = writable(undefined);
     let search = ''; // internal shared search state, reset when dropdowns close
 
     let selected_detail_cache = [];
     export let selected_detail = writable([])
-    selected.subscribe(($selected) => {
+    let unsubscribe = selected.subscribe(($selected) => {
         let should_recalc = false;
         for(let level=0; level<getters.length; ++level) {
             should_recalc |= ($selected[level] === undefined || $selected[level] !== selected_detail_cache?.value)
@@ -21,19 +22,18 @@
             let error = undefined;
             if(index === -1) {
                 if($selected[level] !== undefined) {
-                    error = `Invalid dropdown option "${$selected[level]}"`
+                    error = `Requested option not found: "${$selected[level]}"`
                 }
                 index = 0;
             }
             let value = options[index];
             selected_detail_cache[level] = {value, index, options, error};
         }
-        console.log(selected_detail_cache)
         selected_detail.set(selected_detail_cache);
     });
 
     function clickHandler(e) {
-        current=undefined
+        open.set(undefined)
         const curr_selected = get(selected);
         let level = parseInt(e.target.dataset.level);
         let value =  e.target.dataset.value;
@@ -41,19 +41,23 @@
         curr_selected[level] = value;
         selected.set(curr_selected);
     }
-
+    onDestroy(unsubscribe);
 </script>
 
 <div class="flex flex-col gap-y-4">
     {#each $selected_detail as s, i }
         <div class='flex w-full flex-col items-stretch'>
-            <div class='text-sm ml-2'>{getters[i].name} ({s.options.length})</div>
-            <Button size="sm" on:click={() => current=i} class="text-dark dark:text-white" color='light'>
+            <div class='flex flex-row'>
+                <div class='text-sm ml-2'>{getters[i].name} ({s.options.length})</div>
+                <div class='text-sm ml-2 text-red-500'>{s.error || ''}</div>
+            </div>
+
+            <Button size="sm" class="text-dark dark:text-white" color='light'>
                 <span class="overflow-x-hidden text-ellipsis">
                     {s.value}
                 </span>
                 <i class='fas fa-angle-down pl-2 text-gray-200'/></Button>
-            <Dropdown placement='bottom' open={current===i} headerClass="m-2" containerClass='w-full z-50' on:show={(e) => {if(!e.detail) {search=''; current=undefined}}} class="overflow-y-auto px-3 pb-3 text-sm h-44 divide-y divide-gray-100">
+            <Dropdown open={$open===i} placement='bottom' headerClass="m-2" containerClass='w-full z-50' on:show={(e) => {open.set(i); if(!e.detail) search=''}} class="overflow-y-auto px-3 pb-3 text-sm h-44 divide-y divide-gray-100">
                 <div slot="header">
                     <Search autofocus placeholder='Filter...' bind:value={search} size="md"/>
                 </div>

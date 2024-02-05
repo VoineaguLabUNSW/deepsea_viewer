@@ -16,7 +16,7 @@ function createParam(param, defaultVal='', fnStore=v => v, fnLoad=v => v, preven
             }
             goto(`${lastPage.url.pathname}?${query.toString()}`,  preventSideEffects && { keepFocus: true, noScroll: true});
         },
-        subscribe: store.subscribe
+        subscribe: store.subscribe,
     }
 }
 

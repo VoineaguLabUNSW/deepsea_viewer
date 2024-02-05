@@ -2,13 +2,13 @@
     import { writable, derived } from "svelte/store"
     import CascadeDropdown from "../lib/components/cascadedropdown.svelte";
     import Heatmap from "../lib/components/heatmap.svelte"
-    import { createCore } from "../lib/stores/core"
+    import { getContext } from 'svelte'
     import Navbar from '../lib/components/navbar.svelte'
 	import { createIntParam, createListParam } from "../lib/stores/param";
     import { goto } from '$app/navigation';
     import { base } from '$app/paths';
 
-    let { metadata, curr_selection, curr_heatmap } = createCore('https://d33ldq8s2ek4w8.cloudfront.net/crispri/metadata.json');//"./export/metadata.json.gz"
+    let { metadata, curr_selection, curr_heatmap } = getContext('core');
 
     let subview_param = createIntParam('subview', 0, true);
     let selection_param = createListParam('selection', true, ['subview'], (l1, l2) => l1 == null || l1[0] !== l2[0]);
@@ -31,7 +31,7 @@
 <Navbar/>
 
 <div class="mx-12 mt-12">
-{#if $curr_heatmap !== undefined }
+{#if $curr_heatmap !== undefined}
     <Heatmap bind:data={curr_heatmap} bind:subview={subview_param}/>
 {:else}
     <div role="status" class="w-full p-4 border border-gray-200 rounded shadow animate-pulse md:p-6 dark:border-gray-700">

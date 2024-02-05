@@ -18,7 +18,7 @@ function createCore(url) {
         let $metadata = get(metadata)
         if($metadata === undefined || $metadata.error) return
 
-        console.log($curr_selection)
+        curr_heatmap.set({loading: true});
 
         const ranges = $metadata.value.user_sequences[$curr_selection[0].value];
         const index = $curr_selection[1].index
