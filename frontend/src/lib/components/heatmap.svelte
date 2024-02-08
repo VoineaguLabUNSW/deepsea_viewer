@@ -6,6 +6,7 @@
     import * as d3 from 'd3';
 
     export let data;
+    export let description;
 
     export let subview = writable(undefined);
     const LEGEND_SIZE={x:300, y:20}
@@ -113,8 +114,9 @@
 
 <div class="{(!$data.data || !$plot_data) && 'animate-pulse opacity-20'}">
     <div class="h-full w-full" bind:clientWidth bind:clientHeight bind:offsetWidth bind:offsetHeight role="none" on:dblclick={() => recenterScroll(true)}>
-        <div class='w-full h-16'>
-            <div class='float-right text-center'>
+        <div class='w-full h-16 flex justify-between'>
+            <div>{description}</div>
+            <div class='text-center'>
                 <svg width={LEGEND_SIZE.x} height=50>
                     <!-- legend -->
                     <defs>

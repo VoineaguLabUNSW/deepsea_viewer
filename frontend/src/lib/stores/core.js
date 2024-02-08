@@ -1,13 +1,12 @@
 import * as pako from 'pako';
-import { asyncReadable, writable, get } from "@square/svelte-store";
+import { asyncDerived, writable, get } from "@square/svelte-store";
 import * as protobuf from '../../gen/data_pb'
 
 function createCore(url) {
-    const metadata = asyncReadable(
-        undefined,
-        async () => {
-            try { return {value: await (await fetch(url)).json()}; }
-            catch(e) { console.log(e); return {error: e}; }
+    const metadata = asyncDerived(url,
+        async ($url) => {
+            try { return {value: await (await fetch($url)).json()}; }
+            catch(e) { console.log(e); return {error: `Unable to load source ${$url}: (${e})`}; }
         }
     );
 
@@ -16,7 +15,8 @@ function createCore(url) {
     curr_selection.subscribe(async ($curr_selection) => {
         if($curr_selection.some(s => s?.value === undefined)) return
         let $metadata = get(metadata)
-        if($metadata === undefined || $metadata.error) return
+        if($metadata === undefined) return;
+        if($metadata.error) curr_heatmap.set({error: $metadata.error})
 
         curr_heatmap.set({loading: true});
 

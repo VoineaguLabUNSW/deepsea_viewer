@@ -1,0 +1,6 @@
+.zed/
+export/
+.DS_Store
+__pycache__/
+bun/
+bun.lockb

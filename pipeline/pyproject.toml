@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "deepsea_viewer"
+version = "0.1.0"
+description = "Basic static heatmap viewer for variant expression TSV files"
+authors = ["Kieran Walsh <k.walsh@unsw.edu.au>"]
+
+[tool.poetry.scripts]
+deepsea-viewer = "deepsea_viewer.cli:main"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+rangehttpserver = "^1.2.3"
+requests = "^2.31.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

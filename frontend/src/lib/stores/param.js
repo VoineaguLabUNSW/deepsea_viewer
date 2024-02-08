@@ -11,7 +11,7 @@ function createParam(param, defaultVal='', fnStore=v => v, fnLoad=v => v, preven
             if(lastPage.url.searchParams.get(param) == vStore) return; //attempt to debounce, but won't work beyond primitive types
             let query = new URLSearchParams(lastPage.url.searchParams.toString());
             query.set(param, vStore);
-            if(invalidates_fn(fnLoad(lastPage.url.searchParams.get(param)), v)) {
+            if(invalidates_fn && invalidates_fn(fnLoad(lastPage.url.searchParams.get(param)), v)) {
                 invalidates.forEach(iv => query.delete(iv));
             }
             goto(`${lastPage.url.pathname}?${query.toString()}`,  preventSideEffects && { keepFocus: true, noScroll: true});
@@ -25,7 +25,7 @@ function createIntParam(param, defaultVal=1, preventSideEffects=false, invalidat
 }
 
 function createListParam(param, preventSideEffects=false, invalidates=[], invalidates_fn=undefined) {
-    return createParam(param, [], (v) => v && v.join(','), (v) => v && v.split(','), preventSideEffects, invalidates, invalidates_fn);
+    return createParam(param, [], (v) => v && v.join(','), (v) => v && v.split(',').map(s => s ? s : undefined), preventSideEffects, invalidates, invalidates_fn);
 }
 
 export { createIntParam, createParam, createListParam};

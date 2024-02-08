@@ -10,6 +10,8 @@
     let open = writable(undefined);
     let search = ''; // internal shared search state, reset when dropdowns close
 
+    $: console.log($selected)
+
     let selected_detail_cache = [];
     export let selected_detail = writable([])
     let unsubscribe = selected.subscribe(($selected) => {
