@@ -5,7 +5,7 @@ import * as protobuf from '../../gen/data_pb'
 function createCore(url) {
     const metadata = asyncDerived(url,
         async ($url) => {
-            try { return {value: await (await fetch($url)).json()}; }
+            try { return {url: $url, value: await (await fetch($url)).json()}; }
             catch(e) { console.log(e); return {error: `Unable to load source ${$url}: (${e})`}; }
         }
     );
@@ -23,7 +23,7 @@ function createCore(url) {
         const ranges = $metadata.value.user_sequences[$curr_selection[0].value];
         const index = $curr_selection[1].index
         const controller = new AbortController();
-        const response = await fetch('https://d33ldq8s2ek4w8.cloudfront.net/crispri/data.bin'/*`./export/data.bin`*/, {
+        const response = await fetch($metadata.url.slice(0, $metadata.url.lastIndexOf('/')) + '/data.bin' , {
             signal: controller.signal,
             headers: {'Range': 'bytes=' + `${ranges[index]}-${ranges[index+1]-1}`},
         });

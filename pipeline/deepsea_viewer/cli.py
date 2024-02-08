@@ -52,17 +52,25 @@ def make_jobs_local(job_ids, dest, heading_filter=None, desc=None):
             print('processing job ' + job_id)
             out = os.path.join(dest, job_id)
             os.makedirs(out, exist_ok=True)
-            r = requests.get(f'https://hb.flatironinstitute.org/api/deepsea/jobs/{job_id}')
-            data = r.json()
 
-            keys = [k for k,v in data['files'].items() if 'logits' in v]
-            names = [data['files'][k]['logits']['name'] for k in keys]
-            urls = [data['files'][k]['logits']['url'] for k in keys]
+            # Obtain paths, use cache as fallback
+            paths = None
+            try:
+                r = requests.get(f'https://hb.flatironinstitute.org/api/deepsea/jobs/{job_id}')
+                r.raise_for_status()
+                data = r.json()
+                keys = [k for k,v in data['files'].items() if 'logits' in v]
+                urls = [data['files'][k]['logits']['url'] for k in keys]
+                with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+                    paths = executor.map(functools.partial(store, dest=out), urls)
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code != 404: raise Exception(f'issue fetching job {job_id} ({e})')
+                try: paths = [os.path.join(out, p) for p in os.listdir(out) if p.endswith('.tsv.gz')]
+                except FileNotFoundError: raise Exception(f'job id {job_id} not found online or in cache')
 
-            with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-                paths = executor.map(functools.partial(store, dest=out), urls)
-
-            for name, path in zip(names, paths):
+            # Append to binary
+            for path in paths:
+                name = os.path.basename(path).replace('_logits.tsv.gz', '')
                 print('processing user sequence ' + name)
                 with gzip.open(path, 'rt', newline='') as g:
                     reader = csv.reader(g, delimiter='\t')
@@ -78,7 +86,7 @@ def make_jobs_local(job_ids, dest, heading_filter=None, desc=None):
 
 def main():
     parser = argparse.ArgumentParser(description='Utility for repackaging and serving deepsea heatmap data.')
-    subparsers = parser.add_subparsers(title='commands', dest='command')
+    subparsers = parser.add_subparsers(title='commands', dest='command', required=True)
 
     create_parser = subparsers.add_parser('create', help='Create heatmap data')
     create_parser.add_argument('jobs', nargs='+', help='List of jobs to merge')

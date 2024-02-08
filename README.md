@@ -4,13 +4,13 @@
 
 Basic static heatmap viewer for variant expression TSV files, allows mirroring of DeepSEA/Beluga analysis performed on humanbase (Flatiron Institute). Launch [example](https://voineagulabunsw.github.io/deepsea_viewer/).
 
-Basics:
+Example: (WARNING - each humanbase job id requires ~3GB storage)
 ```
 # Install
-python3 -m pip install "pkg @ git+https://git@github.com/VoineaguLabUNSW/deepsea_viewer.git#subdirectory=pipeline"
+python3 -m pip install "git+https://git@github.com/VoineaguLabUNSW/deepsea_viewer.git#subdirectory=pipeline"
 
 # Create local folder
-deepsea-viewer create -d ./export -p '^NH_A_Astrocytes.*' \
+deepsea-viewer create -d ./export -r '^NH_A_Astrocytes.*' \
     -desc 'Variant effects of CRISPRi screened enhancers in human primary astrocytes (Green et al. 2024)' \
     1d57acde-1d71-48c8-90d1-dcc45702a5fb \
     65fb5c0e-ae5d-41a8-9f28-90a467c0fed1 \
