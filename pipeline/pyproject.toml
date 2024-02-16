@@ -11,6 +11,7 @@ deepsea-viewer = "deepsea_viewer.cli:main"
 python = "^3.7"
 rangehttpserver = "^1.2.3"
 requests = "^2.31.0"
+protobuf = "^4.25.2"
 
 [build-system]
 requires = ["poetry-core"]

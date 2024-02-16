@@ -29,7 +29,7 @@
         if(!($data?.data)) return;
         const cells = $data.data.types.map(t => type_to_order[t]);
         const headings = cells.filter((_, i) => !(i%3)).map(p => p.from)
-        set({cells, headings, values: $data.data.values, timestamp: Date.now()})
+        set({cells, headings, size: $data.size, description: $data.description, values: $data.data.values, timestamp: Date.now()})
     });
 
     let clientWidth, clientHeight, offsetWidth, offsetHeight;
@@ -52,7 +52,7 @@
 
     let gx1, gx2, gy, glegend;
     $: d3.select(gy).call(d3.axisLeft(yScale).tickValues([...Array(MUTATION_DISPLAY_ORDER.length).keys()].map(i => i+0.5)).tickFormat(i => MUTATION_DISPLAY_ORDER[Math.floor(i)]));
-    $: if($plot_data) d3.select(gx2).call(d3.axisBottom(xScale).tickValues([...Array(2000/20).keys()].map(i => i*20)));
+    $: if($plot_data) d3.select(gx2).call(d3.axisBottom(xScale).tickValues([...Array(2000/20).keys()].map(i => (i*20))).tickFormat(i => i-1000));
     $: if($plot_data) d3.select(gx1).call(d3.axisTop(xScale).tickValues([...Array(2000).keys()]).tickFormat(d => $plot_data.headings[d]));
     $: d3.select(glegend).call(d3.axisBottom(legendScale).tickValues([-0.5, 0, 0.5]));
 
@@ -114,8 +114,10 @@
 
 <div class="{(!$data.data || !$plot_data) && 'animate-pulse opacity-20'}">
     <div class="h-full w-full" bind:clientWidth bind:clientHeight bind:offsetWidth bind:offsetHeight role="none" on:dblclick={() => recenterScroll(true)}>
-        <div class='w-full h-16 flex justify-between'>
-            <div>{description}</div>
+        <div class='w-full pb-10 flex justify-between'>
+            <div class='[&>a]:text-blue-600 [&>a:hover]:underline'>
+                {@html (description + ($plot_data?.description ? (` - current sequence: ${$plot_data.description}`) : ''))}
+            </div>
             <div class='text-center'>
                 <svg width={LEGEND_SIZE.x} height=50>
                     <!-- legend -->
@@ -146,7 +148,7 @@
                             {@const rect_h=(height-margin.top-margin.bottom)/MUTATION_DISPLAY_ORDER.length}
                             {#each $plot_data.cells as cell, i }
                                 {@const cellX=Math.floor(i/3)}
-                                <rect width={rect_w} height={rect_h} y={yScale(cell.y)} x={xScale(cellX)} opacity={(!$subview || Math.abs(cellX - 1000) <= $subview) ? 1 : 0.5} fill={color_scale($plot_data.values[i])}>
+                                <rect width={rect_w} height={rect_h} y={yScale(cell.y)} x={xScale(cellX)} opacity={(!$plot_data.size || Math.abs(cellX - 1000) <= $plot_data.size) ? 1 : 0.5} fill={color_scale($plot_data.values[i])}>
                                     <title>{cell.annot} ({$plot_data.values[i]})</title>
                                 </rect>
                             {/each}

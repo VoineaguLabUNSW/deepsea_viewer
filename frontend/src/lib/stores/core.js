@@ -20,7 +20,8 @@ function createCore(url) {
 
         curr_heatmap.set({loading: true});
 
-        const ranges = $metadata.value.user_sequences[$curr_selection[0].value];
+        const sequence = $metadata.value.user_sequences[$curr_selection[0].value]
+        const ranges = sequence.bytes;
         const index = $curr_selection[1].index
         const controller = new AbortController();
         const response = await fetch($metadata.url.slice(0, $metadata.url.lastIndexOf('/')) + '/data.bin' , {
@@ -35,7 +36,7 @@ function createCore(url) {
             try {
                 const buffer = await response.arrayBuffer();
                 const unpacked = protobuf.Heatmap.fromBinary(pako.inflate(new Uint8Array(buffer)));
-                curr_heatmap.set({data: unpacked});
+                curr_heatmap.set({data: unpacked, description: sequence.desc, size: sequence.size});
             } catch(e) {
                 curr_heatmap.set({error: `Unexpected data - ${e}`});
             }

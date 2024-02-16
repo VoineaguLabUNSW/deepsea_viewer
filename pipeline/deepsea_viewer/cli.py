@@ -41,11 +41,19 @@ def iter_to_binary(reader, writer, heading_filter=None):
     ranges = [writer(heatmaps[i].SerializeToString()) for i in range(len(headings))]
     return ranges, [e[1] for e in headings]
 
-def make_jobs_local(job_ids, dest, heading_filter=None, desc=None):
+def make_jobs_local(job_ids, dest, heading_filter=None, desc=None, metadata_file=None):
     job_metadata = {}
     user_sequences=collections.OrderedDict()
     headings = []
     paths = []
+    os.makedirs(dest, exist_ok=True)
+    
+    metadata = {}
+    if metadata_file:
+        with open(metadata_file) as f:
+            reader = csv.reader(f, delimiter='\t')
+            metadata = {row[0]: {k:v for k,v in dict(size=row[1], desc=row[2]).items() if v} for row in reader}
+        
     with write_compressed_ranges(os.path.join(dest, 'data.bin')) as writer_utils:
         writer, _ = writer_utils
         for job_id in job_ids:
@@ -79,7 +87,8 @@ def make_jobs_local(job_ids, dest, heading_filter=None, desc=None):
                         raise Exception('Headings inconsistent')
                     headings = curr_headings
                     if name in user_sequences: raise Exception(f'Duplicate user sequence ${name}, merging jobs failed')
-                    user_sequences[name] = [r[0] for r in ranges] + [ranges[-1][1]]
+                    if name == 'Enh1': print(metadata.get(name, {}))
+                    user_sequences[name] = dict(**(metadata.get(name, {})), bytes=[r[0] for r in ranges] + [ranges[-1][1]])
 
     with open(os.path.join(dest, 'metadata.json'), 'w') as f:
         json.dump(dict(user_sequences=user_sequences, headings=headings, description=desc), f)
@@ -93,7 +102,8 @@ def main():
     create_parser.add_argument('-d', '--destination', required=True, help='Destination folder')
     create_parser.add_argument('-r', '--pattern', required=True, help='Regex pattern to filter headings')
     create_parser.add_argument('-desc', '--description', help='Description')
-
+    create_parser.add_argument('-m', '--metadata', help='Add optional information using TSV (heading: sequence_name size description)')
+    
     serve_parser = subparsers.add_parser('serve', help='Serve heatmap data')
     serve_parser.add_argument('-d', '--destination', required=True, help='Destination folder')
     serve_parser.add_argument('-p', '--port', type=int, default=8000, help='Port')
@@ -103,7 +113,7 @@ def main():
 
     if args.command == 'create':
         # Create destination folder
-        make_jobs_local(args.jobs, args.destination, args.pattern, args.description)
+        make_jobs_local(args.jobs, args.destination, args.pattern, args.description, args.metadata)
     elif args.command == 'serve':
         # Serve destination folder with range requests/cors
         class CORSRequestHandler(RangeHTTPServer.RangeRequestHandler):
