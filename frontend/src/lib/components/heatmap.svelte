@@ -114,24 +114,24 @@
 
 <div class="{(!$data.data || !$plot_data) && 'animate-pulse opacity-20'}">
     <div class="h-full w-full" bind:clientWidth bind:clientHeight bind:offsetWidth bind:offsetHeight role="none" on:dblclick={() => recenterScroll(true)}>
-        <div class='w-full pb-10 flex justify-between'>
-            <div class='[&>a]:text-blue-600 [&>a:hover]:underline'>
+        <div class='w-full pb-14'>
+            <div class='[&>a]:text-blue-600 [&>a:hover]:underline mb-4'>
                 {@html (description + ($plot_data?.description ? (` - current sequence: ${$plot_data.description}`) : ''))}
-            </div>
-            <div class='text-center'>
-                <svg width={LEGEND_SIZE.x} height=50>
-                    <!-- legend -->
-                    <defs>
-                        <linearGradient id="legend-gradient">
-                            {#each COLOR_STEPS as c, i}
-                                <stop offset="{i/(COLOR_STEPS.length-1)*100.0}%" stop-color={c} />
-                            {/each}
-                        </linearGradient>
-                    </defs>
-                    <g bind:this={glegend} transform="translate({0},{30})"/>
-                    <rect width="{LEGEND_SIZE.x-margin.left-margin.right}" height=10 y=20 x={margin.left} fill="url(#legend-gradient)"/>
-                    <text x="50%" y="10" dominant-baseline="middle" text-anchor="middle">Log-fold change</text>
-                </svg>
+                <div class='text-center float-right m-2'>
+                    <svg width={LEGEND_SIZE.x} height=50>
+                        <!-- legend -->
+                        <defs>
+                            <linearGradient id="legend-gradient">
+                                {#each COLOR_STEPS as c, i}
+                                    <stop offset="{i/(COLOR_STEPS.length-1)*100.0}%" stop-color={c} />
+                                {/each}
+                            </linearGradient>
+                        </defs>
+                        <g bind:this={glegend} transform="translate({0},{30})"/>
+                        <rect width="{LEGEND_SIZE.x-margin.left-margin.right}" height=10 y=20 x={margin.left} fill="url(#legend-gradient)"/>
+                        <text x="50%" y="10" dominant-baseline="middle" text-anchor="middle">Log-fold change</text>
+                    </svg>
+                </div>
             </div>
         </div>
         <div>

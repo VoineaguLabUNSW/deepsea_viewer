@@ -20,7 +20,7 @@
     }
 
     const getters = derived(metadata, ($metadata, set) => {$metadata?.value && set([
-        {name: 'Sequences', options: (job_id) => Object.keys($metadata.value.user_sequences).toSorted()},
+        {name: 'Sequences', options: (job_id) => {let ret = Object.keys($metadata.value.user_sequences); ret.sort(); return ret}},
         {name: 'Chromatin features', options: (job_id, enh_id) => $metadata.value.headings.map(h => {let [c, f, t] = h.split('|'); return `Cell type: ${c} | Chromatin feature type: ${f} | Treatment: ${t}`})}
     ])});
 </script>
@@ -30,7 +30,7 @@
 <Navbar/>
 
 <div class="mx-12 mt-12 relative">
-    <div class='{$metadata?.error || "hidden"} absolute m-48 z-50 text-red-600 bg-[#ffffff77] rounded-md p-4'>{$metadata?.error || ''}</div>
+    <div class='{$metadata?.error || "hidden"} absolute m-[20%] z-50 text-red-600 bg-[#ffffff77] rounded-md p-4'>{$metadata?.error || ''}</div>
 {#if $curr_heatmap !== undefined}
     <Heatmap bind:data={curr_heatmap} description={($metadata?.value?.description || '')}/>
 {:else}

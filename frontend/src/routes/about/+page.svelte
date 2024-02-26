@@ -11,7 +11,7 @@ let { metadata, curr_selection, curr_heatmap } = getContext('core');
 
 <Navbar/>
 
-<div class="mx-48 my-12">
+<div class="mx-[20%] my-12">
     <p>Simple static heatmap viewer to display Deepsea jobs indefinitely from either local or cloud storage.</p>
     <p>Double click the main heatmap to re-centre, click anywhere on the miniature overview to jump to a position.</p>
     <p>Source URLs can be created using the simple <A href='https://github.com/VoineaguLabUNSW/deepsea_viewer'>pipeline</A>.</p>
