@@ -1,6 +1,6 @@
 <script>
     import { onDestroy } from 'svelte'
-    import { writable, get, derived } from 'svelte/store'
+    import { writable, get } from 'svelte/store'
     import { Button, Dropdown, DropdownItem, Search } from 'flowbite-svelte';
 
     // NOTE: bind:selected causes an unecessary update, will be fixed in svelte 5 (https://github.com/sveltejs/svelte/issues/4265)
@@ -9,8 +9,6 @@
 
     let open = writable(undefined);
     let search = ''; // internal shared search state, reset when dropdowns close
-
-    $: console.log($selected)
 
     let selected_detail_cache = [];
     export let selected_detail = writable([])

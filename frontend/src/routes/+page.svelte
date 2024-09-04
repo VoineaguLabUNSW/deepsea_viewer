@@ -32,7 +32,7 @@
 <div class="mx-12 mt-12 relative">
     <div class='{$metadata?.error || "hidden"} absolute m-[20%] z-50 text-red-600 bg-[#ffffff77] rounded-md p-4'>{$metadata?.error || ''}</div>
 {#if $curr_heatmap !== undefined}
-    <Heatmap bind:data={curr_heatmap} description={($metadata?.value?.description || '')}/>
+    <Heatmap/>
 {:else}
     <div role="status" class="w-full p-4 border border-gray-200 rounded shadow md:p-6 dark:border-gray-700 {$metadata?.error || 'animate-pulse'}">
         <div class="flex items-baseline mt-4">
