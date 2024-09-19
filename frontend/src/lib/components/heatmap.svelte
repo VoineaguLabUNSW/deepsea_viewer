@@ -15,41 +15,56 @@
     const MUTATION_DISPLAY_ORDER = 'CGTA';
     const CANVAS_RESOLUTION={x: 2000, y: 80};
     const CANVAS_HEIGHT=80;
-
-    const color_scale = scaleSequential(interpolateRgbBasis(COLOR_STEPS)).domain([-0.5,0.5]);
+    
     const margin = { top: 20, right: 25, bottom: 40, left: 25 };
     
     let curr_download = writable({});
 
-    let clientWidth, clientHeight, offsetWidth, offsetHeight;
+    let clientWidth, clientHeight, offsetWidth, offsetHeight, color_scale;
 
-	let width = 30000;
-	let height = 300;
+    let width = 30000;
+    let height = 300;
 
-	let xScale, yScale, legendScale;
+    let xScale, yScale, legendScale, min, max;
+    min = -0.5
+    max = 0.5
+
+    $: {
+       if ($curr_heatmap?.headings) {
+            let magnitude = 0.5;
+            for(let i=0, curr=0; i<$curr_heatmap.values.length; ++i) {
+                curr = Math.abs($curr_heatmap.values[i]);
+                if(curr > magnitude) magnitude = curr;
+            }
+            min = -magnitude
+            max = magnitude
+            color_scale = scaleSequential(interpolateRgbBasis(COLOR_STEPS)).domain([min, max]);
+        }
+    }
+    
     $: if($curr_heatmap?.headings) xScale = scaleLinear()
             .domain([0, $curr_heatmap.headings.length])
             .range([margin.left, width-margin.right]);
 
-	$: yScale = scaleLinear()
-		.domain([0, MUTATION_DISPLAY_ORDER.length])
-		.range([margin.top, height-margin.bottom]);
+    $: yScale = scaleLinear()
+        .domain([0, MUTATION_DISPLAY_ORDER.length])
+        .range([margin.top, height-margin.bottom]);
 
     $: legendScale = scaleLinear()
-        .domain([-0.5, 0.5])
+        .domain([min, max])
         .range([margin.left, LEGEND_SIZE.x-margin.right])
 
     let gx1, gx2, gy, glegend;
     $: d3.select(gy).call(d3.axisLeft(yScale).tickValues([...Array(MUTATION_DISPLAY_ORDER.length).keys()].map(i => i+0.5)).tickFormat(i => MUTATION_DISPLAY_ORDER[Math.floor(i)]));
     $: if($curr_heatmap?.headings) d3.select(gx2).call(d3.axisBottom(xScale).tickValues([...Array(2000/20).keys()].map(i => (i*20))).tickFormat(i => i-1000));
     $: if($curr_heatmap?.headings) d3.select(gx1).call(d3.axisTop(xScale).tickValues([...Array(2000).keys()]).tickFormat(d => $curr_heatmap.headings[d]));
-    $: d3.select(glegend).call(d3.axisBottom(legendScale).tickValues([-0.5, 0, 0.5]));
+    $: d3.select(glegend).call(d3.axisBottom(legendScale).tickValues([min, 0, max]));
 
     let svg, canvas, container, canvas_timestamp;
     afterUpdate(() => {
         if (!$curr_heatmap?.timestamp || $curr_heatmap.timestamp === canvas_timestamp) return;
         canvas_timestamp = $curr_heatmap.timestamp
-		const svg_url = new XMLSerializer().serializeToString(svg);
+        const svg_url = new XMLSerializer().serializeToString(svg);
         const img = new Image();
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);;
@@ -62,7 +77,7 @@
             );
         }
         img.src = 'data:image/svg+xml; charset=utf8, ' + encodeURIComponent(svg_url);
-	});
+    });
 
     let leftPx, rightPx, leftCan, rightCan, scrollInit;
 
@@ -156,7 +171,7 @@
                             {#each $curr_heatmap.cells as cell, i }
                                 {@const cellX=Math.floor(i/3)}
                                 <rect width={rect_w} height={rect_h} y={yScale(cell.y)} x={xScale(cellX)} opacity={(!$curr_heatmap.size || Math.abs(cellX - 1000) <= $curr_heatmap.size) ? 1 : 0.5} fill={color_scale($curr_heatmap.values[i])}>
-                                    <title>{cell.annot} ({$curr_heatmap.values[i]})</title>
+                                    <title>{cell.annot} ({$curr_heatmap.values[i].toFixed(4)})</title>
                                 </rect>
                             {/each}
 
