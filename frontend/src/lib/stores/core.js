@@ -85,7 +85,7 @@ async function batchDownloadSelections(curr_download, $metadata, selections) {
                 xhr.responseType = 'arraybuffer';
                 xhr.onload = function () {
                     const results = $metadata.value.headings.map((h, j) => createHeatmapData(xhr.response.slice(ranges[j]-ranges[0], ranges[j + 1]-ranges[0]), selections[i], sequence.desc, sequence.size));
-                    const tsv = 'pos\tref\talt\t' + $metadata.value.headings.join('\t') + '\n' + results[0].cells.map((c, y) => `${Math.floor(y / 3)}\t${c.from}\t${c.to}\t${results.map(r => r.values[y].toExponential(2)).join('\t')}`).join('\n')
+                    const tsv = 'pos\theatmap\tref\talt\t' + $metadata.value.headings.join('\t') + '\n' + results[0].cells.map((c, y) => `${Math.floor(y / 3)}\t${Math.floor(y / 3)-1000}\t${c.from}\t${c.to}\t${results.map(r => r.values[y].toExponential(2)).join('\t')}`).join('\n')
                     downloadCSV(tsv, `${selections[i]}_logits.tsv`)
                     resolve();
                 };
